@@ -1,10 +1,12 @@
 /* ============================================
-   MAIN LINE BOUNCE - SYSTÈME DE PANIER
+   MAIN LINE BOUNCE - SYSTÈME COMPLET
    ============================================ */
 
 const CART_KEY = 'mlb_cart';
 
-/* ---- Lecture / écriture localStorage ---- */
+/* ============================================
+   PANIER - Lecture / écriture localStorage
+   ============================================ */
 function getCart() {
   try {
     return JSON.parse(localStorage.getItem(CART_KEY)) || [];
@@ -155,7 +157,9 @@ function renderCartPage() {
   if (totalEl) totalEl.textContent = '$' + total.toFixed(0);
 }
 
-/* ===== FAQ ACCORDÉON ===== */
+/* ============================================
+   FAQ ACCORDÉON
+   ============================================ */
 function initFAQ() {
   const faqItems = document.querySelectorAll('.faq-item');
 
@@ -184,7 +188,9 @@ function initFAQ() {
   });
 }
 
-/* ===== HAMBURGER MENU ===== */
+/* ============================================
+   HAMBURGER MENU - MOBILE 🍔
+   ============================================ */
 function initHamburger() {
   const hamburger = document.querySelector('.hamburger');
   const nav = document.querySelector('.main-nav');
@@ -196,18 +202,16 @@ function initHamburger() {
   hamburger.addEventListener('click', function(e) {
     e.stopPropagation();
     hamburger.classList.toggle('active');
-    nav.classList.toggle('active');
-    if (overlay) overlay.classList.toggle('active');
-    hamburger.setAttribute('aria-expanded', hamburger.classList.contains('active'));
+    nav.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('open');
   });
 
   // Ferme le menu quand on clique sur le overlay
   if (overlay) {
     overlay.addEventListener('click', function() {
       hamburger.classList.remove('active');
-      nav.classList.remove('active');
-      overlay.classList.remove('active');
-      hamburger.setAttribute('aria-expanded', 'false');
+      nav.classList.remove('open');
+      overlay.classList.remove('open');
     });
   }
 
@@ -215,30 +219,32 @@ function initHamburger() {
   nav.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', function() {
       hamburger.classList.remove('active');
-      nav.classList.remove('active');
-      if (overlay) overlay.classList.remove('active');
-      hamburger.setAttribute('aria-expanded', 'false');
+      nav.classList.remove('open');
+      if (overlay) overlay.classList.remove('open');
     });
   });
 
   // Ferme le menu si on clique en dehors
   document.addEventListener('click', function(e) {
-    if (!hamburger.contains(e.target) && !nav.contains(e.target)) {
+    if (!hamburger.contains(e.target) && !nav.contains(e.target) && !overlay.contains(e.target)) {
       if (hamburger.classList.contains('active')) {
         hamburger.classList.remove('active');
-        nav.classList.remove('active');
-        if (overlay) overlay.classList.remove('active');
-        hamburger.setAttribute('aria-expanded', 'false');
+        nav.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
       }
     }
   });
 }
 
-/* ---- Initialisation UNIQUE ---- */
+/* ============================================
+   INITIALISATION - Au chargement de la page
+   ============================================ */
 document.addEventListener('DOMContentLoaded', function () {
+  console.log('🚀 Main Line Bounce initialized');
+  
   updateCartBadge();
   initAddButtons();
   renderCartPage();
   initFAQ();
-  initHamburger();
+  initHamburger();  // ← LE HAMBURGER EST LÀ
 });
