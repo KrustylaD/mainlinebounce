@@ -46,69 +46,74 @@ function renderSummary(){
   }).join("");
   document.getElementById("summaryTotal").textContent = "$"+total.toFixed(2);
 }
-renderSummary();
+
+document.addEventListener("DOMContentLoaded", function(){
+  renderSummary();
+});
 
 // ===== Soumission =====
-document.getElementById("checkoutForm").addEventListener("submit", function(e){
-  e.preventDefault();
+document.addEventListener("DOMContentLoaded", function(){
+  document.getElementById("checkoutForm").addEventListener("submit", function(e){
+    e.preventDefault();
 
-  if(cart.length === 0){
-    alert("Your cart is empty!");
-    return;
-  }
+    if(cart.length === 0){
+      alert("Your cart is empty!");
+      return;
+    }
 
-  // Construit la liste des gonflables choisis (mappés sur les options du form)
-  const inflatableValues = cart.map(item=>{
-    return FORM_NAME_MAP[item.name] || item.name;
+    // Construit la liste des gonflables choisis (mappés sur les options du form)
+    const inflatableValues = cart.map(item=>{
+      return FORM_NAME_MAP[item.name] || item.name;
+    });
+
+    // Construit l'URL de soumission (hidden iframe pour éviter CORS)
+    const params = new URLSearchParams();
+    params.append(ENTRY.name,    document.getElementById("name").value);
+    params.append(ENTRY.email,   document.getElementById("email").value);
+    params.append(ENTRY.address, document.getElementById("address").value);
+    params.append(ENTRY.phone,   document.getElementById("phone").value);
+    params.append(ENTRY.date,    document.getElementById("date").value);
+    params.append(ENTRY.where,   document.getElementById("where").value);
+    params.append(ENTRY.guests,  document.getElementById("guests").value);
+
+    // Commentaires + résumé panier (prix + qty) ajoutés dans le champ comments
+    let cartSummary = cart.map(i=>`${i.name} (x${i.qty||1}) - $${i.price}`).join(" | ");
+    const userComment = document.getElementById("comments").value;
+    params.append(ENTRY.comments, (userComment ? userComment+" || " : "") + "ORDER: " + cartSummary);
+
+    // Champ inflatable (radio multiple -> on append plusieurs fois)
+    inflatableValues.forEach(v=>{
+      params.append(ENTRY.inflatable, v);
+    });
+
+    // Soumission via iframe caché
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    const form = document.createElement("form");
+    form.action = FORM_ACTION;
+    form.method = "POST";
+    form.target = "hidden_iframe";
+    form.style.display = "none";
+
+    for(const [key, value] of params.entries()){
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    // Confirmation + vide le panier
+    setTimeout(()=>{
+      localStorage.removeItem("mlb_cart");
+      alert("✅ Thank you! Your booking request has been sent. We'll contact you shortly!");
+      window.location.href = "index.html";
+    }, 1000);
   });
-
-  // Construit l'URL de soumission (hidden iframe pour éviter CORS)
-  const params = new URLSearchParams();
-  params.append(ENTRY.name,    document.getElementById("name").value);
-  params.append(ENTRY.email,   document.getElementById("email").value);
-  params.append(ENTRY.address, document.getElementById("address").value);
-  params.append(ENTRY.phone,   document.getElementById("phone").value);
-  params.append(ENTRY.date,    document.getElementById("date").value);
-  params.append(ENTRY.where,   document.getElementById("where").value);
-  params.append(ENTRY.guests,  document.getElementById("guests").value);
-
-  // Commentaires + résumé panier (prix + qty) ajoutés dans le champ comments
-  let cartSummary = cart.map(i=>`${i.name} (x${i.qty||1}) - $${i.price}`).join(" | ");
-  const userComment = document.getElementById("comments").value;
-  params.append(ENTRY.comments, (userComment ? userComment+" || " : "") + "ORDER: " + cartSummary);
-
-  // Champ inflatable (radio multiple -> on append plusieurs fois)
-  inflatableValues.forEach(v=>{
-    params.append(ENTRY.inflatable, v);
-  });
-
-  // Soumission via iframe caché
-  const iframe = document.createElement("iframe");
-  iframe.name = "hidden_iframe";
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
-
-  const form = document.createElement("form");
-  form.action = FORM_ACTION;
-  form.method = "POST";
-  form.target = "hidden_iframe";
-  form.style.display = "none";
-
-  for(const [key, value] of params.entries()){
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = key;
-    input.value = value;
-    form.appendChild(input);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
-
-  // Confirmation + vide le panier
-  setTimeout(()=>{
-    localStorage.removeItem("mlb_cart");
-    alert("✅ Thank you! Your booking request has been sent. We'll contact you shortly!");
-    window.location.href = "index.html";
-  }, 1000);
 });
