@@ -240,4 +240,5 @@ document.addEventListener('DOMContentLoaded', function () {
   initAddButtons();
   renderCartPage();
   initFAQ();
+  initHamburger();
 });
