@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Cart – Main Line Bounce</title>
+  <meta name="description" content="Review the inflatables and party rentals in your cart." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- HEADER (voir FICHIER 3 ci-dessous) -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <a href="index.html" class="logo">
+          <img src="images/logo.png" alt="Main Line Bounce Logo" />
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="inflatables.html">Inflatables</a></li>
+            <li><a href="tables-chairs.html">Tables/Chairs</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </nav>
+        <div class="header-actions">
+          <a href="tel:2674053125" class="phone-btn">
+            <span class="phone-icon">📞</span>(267) 405-3125
+          </a>
+          <a href="cart.html" class="cart-link" aria-label="View cart">
+    🛒<span class="cart-badge">0</span>
+  </a>
+          <a href="tel:2674053125" class="btn btn-orange">Book now</a>
+        </div>
+        <button class="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="nav-overlay"></div>
+
+  <main>
+    <section class="page-head">
+      <div class="container">
+        <h1>Your Cart</h1>
+        <p>Review your selected inflatables and party rentals.</p>
+      </div>
+    </section>
+
+    <section class="products-section">
+      <div class="container">
+
+        <!-- État vide -->
+        <div class="cart-empty" style="display:none;">
+          <p style="font-size:1.1rem; color:var(--color-gray); margin-bottom:20px;">
+            Your cart is empty.
+          </p>
+          <a href="inflatables.html" class="btn btn-pink">Browse Inflatables</a>
+        </div>
+
+        <!-- Liste des articles -->
+        <div class="cart-list"></div>
+
+        <!-- Résumé / total -->
+        <div class="cart-summary" style="display:none;">
+          <div class="cart-total-row">
+            <span class="cart-total-label">Total</span>
+            <span class="cart-total-amount">$0</span>
+          </div>
+          <div class="cart-actions">
+            <button class="btn btn-outline" onclick="clearCart()">Clear Cart</button>
+            <a href="checkout.html" class="btn btn-pink">Proceed to Checkout →</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <h3>Main Line Bounce</h3>
+          <p>Your one-stop party rental shop.</p>
+        </div>
+        <nav aria-label="Footer navigation">
+          <ul class="footer-nav">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="inflatables.html">Inflatables</a></li>
+            <li><a href="tables-chairs.html">Tables/Chairs</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </nav>
+        <div>
+          <a href="tel:2674053125">(267) 405-3125</a>
+          <p style="margin-top:6px; font-size:0.85rem;">
+            &copy; 2026 Main Line Bounce. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/cart.js"></script>
+</body>
+</html>

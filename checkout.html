@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout - Main Line Bounce</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.checkout-wrap{max-width:1000px;margin:40px auto;padding:0 20px;display:grid;grid-template-columns:1fr 380px;gap:30px}
+@media(max-width:768px){.checkout-wrap{grid-template-columns:1fr}}
+.checkout-form,.order-summary{background:#fff;border-radius:16px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.checkout-form h2,.order-summary h2{margin-top:0;color:#e91e8c}
+.field{margin-bottom:18px}
+.field label{display:block;font-weight:600;margin-bottom:6px;color:#444}
+.field label .req{color:#e91e8c}
+.field input,.field textarea,.field select{width:100%;padding:12px;border:2px solid #f3d4e6;border-radius:10px;font-size:15px;box-sizing:border-box;font-family:inherit}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:#e91e8c}
+.field textarea{resize:vertical;min-height:80px}
+.summary-item{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f3d4e6}
+.summary-item .name{font-weight:600}
+.summary-total{display:flex;justify-content:space-between;padding:16px 0 0;font-size:20px;font-weight:700;color:#e91e8c}
+.btn-submit{width:100%;background:#e91e8c;color:#fff;border:none;padding:16px;border-radius:50px;font-size:18px;font-weight:700;cursor:pointer;margin-top:20px;transition:.2s}
+.btn-submit:hover{background:#c4157a}
+.empty-cart{text-align:center;padding:40px;color:#999}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="index.html" class="logo">Main Line Bounce</a>
+  <a href="inflatables.html" class="btn-booknow">Book now</a>
+</header>
+
+<div class="checkout-wrap">
+
+  <!-- FORM -->
+  <div class="checkout-form">
+    <h2>Booking Details</h2>
+    <form id="checkoutForm">
+      <div class="field">
+        <label>Name <span class="req">*</span></label>
+        <input type="text" id="name" required>
+      </div>
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="field">
+        <label>Address <span class="req">*</span></label>
+        <input type="text" id="address" required>
+      </div>
+      <div class="field">
+        <label>Phone number</label>
+        <input type="tel" id="phone">
+      </div>
+      <div class="field">
+        <label>Which date is your event ?</label>
+        <input type="date" id="date">
+      </div>
+      <div class="field">
+        <label>Where is your event ?</label>
+        <select id="where">
+          <option value="">-- Select --</option>
+          <option>Backyard / Grass</option>
+          <option>Backyard / hard surface</option>
+          <option>Residencial /Street</option>
+          <option>Public Indoor ( Church, school...)</option>
+          <option>Public outdoor ( Church, school...)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>How many guest ? <span class="req">*</span></label>
+        <input type="number" id="guests" required>
+      </div>
+      <div class="field">
+        <label>Comments</label>
+        <textarea id="comments"></textarea>
+      </div>
+      <button type="submit" class="btn-submit">Confirm Booking</button>
+    </form>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="order-summary">
+    <h2>Your Order</h2>
+    <div id="summaryItems"></div>
+    <div class="summary-total">
+      <span>Total</span>
+      <span id="summaryTotal">$0</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/main.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/checkout.js"></script>
+
+<!-- Script pour charger le panier -->
+<script>
+function loadCart() {
+  const cart = JSON.parse(localStorage.getItem('mlb_cart')) || [];  // ✅ CORRECT
+  const summaryItems = document.getElementById('summaryItems');
+
+  if (cart.length === 0) {
+    summaryItems.innerHTML = '<div class="empty-cart">Your cart is empty.<br><a href="inflatables.html">Browse inflatables</a></div>';
+    document.getElementById('summaryTotal').textContent = '$0';
+    return;
+  }
+
+  let html = '';
+  let total = 0;
+
+  cart.forEach(item => {
+    const qty = item.qty || 1;
+    const price = parseFloat(item.price) || 0;
+    const subtotal = price * qty;
+    total += subtotal;
+
+    html += `
+      <div class="summary-item">
+        <span class="name">${item.name} ${qty > 1 ? '×' + qty : ''}</span>
+        <span>$${subtotal.toFixed(2)}</span>
+      </div>
+    `;
+  });
+
+  summaryItems.innerHTML = html;
+  document.getElementById('summaryTotal').textContent = '$' + total.toFixed(2);
+}
+
+document.addEventListener('DOMContentLoaded', loadCart);
+</script>
+
+
+</body>
+</html>
