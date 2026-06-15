@@ -188,63 +188,60 @@ function initFAQ() {
   });
 }
 
-/* ============================================
-   HAMBURGER MENU - MOBILE 🍔
-   ============================================ */
+/* ===== HAMBURGER MENU ===== */
 function initHamburger() {
   const hamburger = document.querySelector('.hamburger');
   const nav = document.querySelector('.main-nav');
   const overlay = document.querySelector('.nav-overlay');
 
-  if (!hamburger || !nav) return;
+  if (!hamburger || !nav) {
+    console.error('❌ Hamburger ou nav not found');
+    return;
+  }
+
+  console.log('✅ Hamburger initialized');
 
   // Ouvre/ferme le menu au clic sur le hamburger
   hamburger.addEventListener('click', function(e) {
     e.stopPropagation();
+    console.log('🍔 Hamburger clicked');
+    
     hamburger.classList.toggle('active');
-    nav.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('open');
+    nav.classList.toggle('active');
+    if (overlay) overlay.classList.toggle('active');
+    hamburger.setAttribute('aria-expanded', hamburger.classList.contains('active'));
   });
 
   // Ferme le menu quand on clique sur le overlay
   if (overlay) {
     overlay.addEventListener('click', function() {
+      console.log('Overlay clicked - closing menu');
       hamburger.classList.remove('active');
-      nav.classList.remove('open');
-      overlay.classList.remove('open');
+      nav.classList.remove('active');
+      overlay.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
     });
   }
 
   // Ferme le menu quand on clique sur un lien
   nav.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', function() {
+      console.log('Link clicked - closing menu');
       hamburger.classList.remove('active');
-      nav.classList.remove('open');
-      if (overlay) overlay.classList.remove('open');
+      nav.classList.remove('active');
+      if (overlay) overlay.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
     });
-  });
-
-  // Ferme le menu si on clique en dehors
-  document.addEventListener('click', function(e) {
-    if (!hamburger.contains(e.target) && !nav.contains(e.target) && !overlay.contains(e.target)) {
-      if (hamburger.classList.contains('active')) {
-        hamburger.classList.remove('active');
-        nav.classList.remove('open');
-        if (overlay) overlay.classList.remove('open');
-      }
-    }
   });
 }
 
-/* ============================================
-   INITIALISATION - Au chargement de la page
-   ============================================ */
+/* ---- Initialisation UNIQUE ---- */
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('🚀 Main Line Bounce initialized');
+  console.log('🚀 Page loaded - initializing');
   
   updateCartBadge();
   initAddButtons();
   renderCartPage();
   initFAQ();
-  initHamburger();  // ← LE HAMBURGER EST LÀ
+  initHamburger();  // ← HAMBURGER ICI
 });
