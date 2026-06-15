@@ -184,6 +184,56 @@ function initFAQ() {
   });
 }
 
+/* ===== HAMBURGER MENU ===== */
+function initHamburger() {
+  const hamburger = document.querySelector('.hamburger');
+  const nav = document.querySelector('.main-nav');
+  const overlay = document.querySelector('.nav-overlay');
+
+  if (!hamburger || !nav) return;
+
+  // Ouvre/ferme le menu au clic sur le hamburger
+  hamburger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    hamburger.classList.toggle('active');
+    nav.classList.toggle('active');
+    if (overlay) overlay.classList.toggle('active');
+    hamburger.setAttribute('aria-expanded', hamburger.classList.contains('active'));
+  });
+
+  // Ferme le menu quand on clique sur le overlay
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      hamburger.classList.remove('active');
+      nav.classList.remove('active');
+      overlay.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  // Ferme le menu quand on clique sur un lien
+  nav.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', function() {
+      hamburger.classList.remove('active');
+      nav.classList.remove('active');
+      if (overlay) overlay.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // Ferme le menu si on clique en dehors
+  document.addEventListener('click', function(e) {
+    if (!hamburger.contains(e.target) && !nav.contains(e.target)) {
+      if (hamburger.classList.contains('active')) {
+        hamburger.classList.remove('active');
+        nav.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        hamburger.setAttribute('aria-expanded', 'false');
+      }
+    }
+  });
+}
+
 /* ---- Initialisation UNIQUE ---- */
 document.addEventListener('DOMContentLoaded', function () {
   updateCartBadge();
