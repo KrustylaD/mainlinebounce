@@ -7,7 +7,7 @@
 const STRIPE_PUBLIC_KEY = "pk_test_REMPLACE_PAR_TA_CLE_PUBLIQUE";
 
 // Discord Webhook (utilisé seulement pour "Pay on Site")
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1516213530288848906/QXvy4KQkXJuOMS-FP-FdqNivU89RjiRid-_uv6pRu3klpT1yQI0jdq2G7K0IAZUtwipN";
+const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK;
 
 // Initialise Stripe
 let stripe = null;
