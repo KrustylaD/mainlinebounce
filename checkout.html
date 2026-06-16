@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout - Main Line Bounce</title>
 <link rel="stylesheet" href="css/style.css">
+
+<!-- ✅ STRIPE.JS -->
+<script src="https://js.stripe.com/v3/"></script>
+
 <style>
 .checkout-wrap{max-width:1000px;margin:40px auto;padding:0 20px;display:grid;grid-template-columns:1fr 380px;gap:30px}
 @media(max-width:768px){.checkout-wrap{grid-template-columns:1fr}}
@@ -23,6 +27,18 @@
 .btn-submit:hover:not(:disabled){background:#c4157a}
 .btn-submit:disabled{opacity:0.6;cursor:not-allowed}
 .empty-cart{text-align:center;padding:40px;color:#999}
+
+/* ✅ NOUVEAU : Choix du mode de paiement */
+.payment-methods{margin:24px 0}
+.payment-methods h3{color:#e91e8c;margin-bottom:12px;font-size:18px}
+.payment-option{display:flex;align-items:center;gap:12px;padding:16px;border:2px solid #f3d4e6;border-radius:12px;cursor:pointer;margin-bottom:12px;transition:.2s}
+.payment-option:hover{border-color:#e91e8c;background:#fdf2f8}
+.payment-option.selected{border-color:#e91e8c;background:#fdf2f8;box-shadow:0 0 0 1px #e91e8c}
+.payment-option input[type="radio"]{width:auto;margin:0;accent-color:#e91e8c}
+.payment-option .pm-icon{font-size:24px}
+.payment-option .pm-text{flex:1}
+.payment-option .pm-title{font-weight:700;color:#333}
+.payment-option .pm-desc{font-size:13px;color:#888}
 </style>
 </head>
 <body>
@@ -77,7 +93,31 @@
         <label>Comments</label>
         <textarea id="comments" name="comments"></textarea>
       </div>
-      <button type="submit" class="btn-submit">Confirm Booking</button>
+
+      <!-- ✅ NOUVEAU : CHOIX DU PAIEMENT -->
+      <div class="payment-methods">
+        <h3>Payment Method</h3>
+
+        <label class="payment-option selected" id="optionCard">
+          <input type="radio" name="paymentMethod" value="card" checked>
+          <span class="pm-icon">💳</span>
+          <span class="pm-text">
+            <span class="pm-title">Pay with Card</span>
+            <span class="pm-desc">Secure online payment via Stripe</span>
+          </span>
+        </label>
+
+        <label class="payment-option" id="optionSite">
+          <input type="radio" name="paymentMethod" value="site">
+          <span class="pm-icon">🏠</span>
+          <span class="pm-text">
+            <span class="pm-title">Pay on Site</span>
+            <span class="pm-desc">Pay cash on the day of your event</span>
+          </span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">Confirm Booking</button>
     </form>
   </div>
 
@@ -95,8 +135,6 @@
 
 <!-- ✅ CHECKOUT JS -->
 <script src="js/checkout.js"></script>
-
-<!-- Main.js en dernier si besoin -->
 <script src="js/main.js"></script>
 
 </body>

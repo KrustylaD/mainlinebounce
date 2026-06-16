@@ -1,0 +1,8 @@
+{
+  "name": "mainlinebounce",
+  "version": "1.0.0",
+  "description": "Main Line Bounce - Inflatable rentals",
+  "dependencies": {
+    "stripe": "^14.0.0"
+  }
+}
