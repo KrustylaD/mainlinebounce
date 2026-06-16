@@ -6,8 +6,7 @@
 // ⚠️ C'est la clé publique, elle peut être visible côté client
 const STRIPE_PUBLIC_KEY = "pk_test_REMPLACE_PAR_TA_CLE_PUBLIQUE";
 
-// Discord Webhook (utilisé seulement pour "Pay on Site")
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1516213530288848906/QXvy4KQkXJuOMS-FP-FdqNivU89RjiRid-_uv6pRu3klpT1yQI0jdq2G7K0IAZUtwipN";
+// Discord notifications are sent server-side via /.netlify/functions/send-booking
 
 // Initialise Stripe
 let stripe = null;
@@ -205,43 +204,14 @@ async function handlePayOnSite(formData) {
 
   const total = calculateTotal();
 
-  // Formate le panier pour Discord
-  let cartText = "";
-  cart.forEach((item) => {
-    const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.quantity) || 1;
-    const itemTotal = (price * quantity).toFixed(2);
-    cartText += `• ${item.name} x${quantity} = $${itemTotal}\n`;
-  });
-
-  const discordMessage = {
-    embeds: [{
-      title: "🎉 New Booking - PAY ON SITE 🏠",
-      color: 15138816,
-      fields: [
-        { name: "👤 Customer Name", value: formData.name || "N/A", inline: true },
-        { name: "📧 Email", value: formData.email || "N/A", inline: true },
-        { name: "📍 Address", value: formData.address || "N/A", inline: false },
-        { name: "📱 Phone", value: formData.phone || "N/A", inline: true },
-        { name: "📅 Event Date", value: formData.date || "N/A", inline: true },
-        { name: "📌 Event Location", value: formData.location || "N/A", inline: false },
-        { name: "👥 Number of Guests", value: formData.guests || "N/A", inline: true },
-        { name: "💬 Comments", value: formData.comments || "No comments", inline: false },
-        { name: "🛒 Items Ordered", value: cartText || "No items", inline: false },
-        { name: "💰 Total Amount", value: "$" + total + " (PAY ON SITE)", inline: true },
-        { name: "⏰ Booking Time", value: new Date().toLocaleString("en-US"), inline: true },
-      ],
-    }],
-  };
-
-  const response = await fetch(DISCORD_WEBHOOK, {
+  const response = await fetch("/.netlify/functions/send-booking", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(discordMessage),
+    body: JSON.stringify({ formData, cart, total }),
   });
 
   if (!response.ok) {
-    throw new Error("Discord error: " + response.status);
+    throw new Error("Booking error: " + response.status);
   }
 
   console.log("✅ Réservation envoyée à Discord!");
