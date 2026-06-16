@@ -3,11 +3,7 @@
 // ========================================
 
 // 🔑 Ta clé PUBLIQUE Stripe (commence par pk_test_ ou pk_live_)
-// ⚠️ C'est la clé publique, elle peut être visible côté client
-const STRIPE_PUBLIC_KEY = "pk_test_REMPLACE_PAR_TA_CLE_PUBLIQUE";
-
-// Discord Webhook (utilisé seulement pour "Pay on Site")
-const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK;
+const STRIPE_PUBLIC_KEY = "pk_test_51TijiEFP6iINRwJw2zXWPLpRO6hnItDTNlcGQxImahsAlxaCAxBOFgWL8fKhlYWbw79YzeXtJOctTUxY8WSwGA5r00idu9gLrg";
 
 // Initialise Stripe
 let stripe = null;
@@ -23,8 +19,9 @@ if (typeof Stripe !== "undefined") {
 let cart = JSON.parse(localStorage.getItem("mlb_cart")) || [];
 
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("✅ Page chargée");
-  console.log("🛒 Panier:", cart);
+  console.log("✅ Checkout page loaded");
+  console.log("🛒 Cart from localStorage:", cart);
+  
   loadCart();
   setupPaymentToggle();
   setupFormSubmit();
@@ -102,15 +99,38 @@ function setupPaymentToggle() {
 // ========================================
 function getFormData() {
   return {
-    name: document.getElementById("name").value,
-    email: document.getElementById("email").value,
-    address: document.getElementById("address").value,
-    phone: document.getElementById("phone").value,
+    name: document.getElementById("name").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    address: document.getElementById("address").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
     date: document.getElementById("date").value,
     location: document.getElementById("where").value,
     guests: document.getElementById("guests").value,
-    comments: document.getElementById("comments").value,
+    comments: document.getElementById("comments").value.trim(),
   };
+}
+
+// ========================================
+// VALIDATION DU FORMULAIRE
+// ========================================
+function validateForm(formData) {
+  if (!formData.name) {
+    alert("Please enter your name");
+    return false;
+  }
+  if (!formData.email) {
+    alert("Please enter your email");
+    return false;
+  }
+  if (!formData.address) {
+    alert("Please enter your address");
+    return false;
+  }
+  if (!formData.guests) {
+    alert("Please enter number of guests");
+    return false;
+  }
+  return true;
 }
 
 // ========================================
@@ -119,7 +139,7 @@ function getFormData() {
 function setupFormSubmit() {
   const form = document.getElementById("checkoutForm");
   if (!form) {
-    console.error("❌ Formulaire non trouvé!");
+    console.error("❌ Form not found!");
     return;
   }
 
@@ -132,27 +152,32 @@ function setupFormSubmit() {
       return;
     }
 
+    const formData = getFormData();
+
+    // Valide le formulaire
+    if (!validateForm(formData)) {
+      return;
+    }
+
     const btn = document.getElementById("submitBtn");
     btn.disabled = true;
     btn.textContent = "Processing...";
 
     // Quel mode de paiement est sélectionné ?
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-    console.log("💳 Mode de paiement:", paymentMethod);
-
-    const formData = getFormData();
+    console.log("💳 Payment method:", paymentMethod);
 
     try {
       if (paymentMethod === "card") {
         // ===== OPTION 1 : PAIEMENT STRIPE =====
         await handleStripePayment(formData);
       } else {
-        // ===== OPTION 2 : PAIEMENT SUR PLACE → DISCORD =====
+        // ===== OPTION 2 : PAIEMENT SUR PLACE → NETLIFY FUNCTION =====
         await handlePayOnSite(formData);
       }
     } catch (error) {
-      console.error("❌ Erreur:", error);
-      alert("An error occurred. Please try again.");
+      console.error("❌ Error:", error);
+      alert("An error occurred: " + error.message);
       btn.disabled = false;
       btn.textContent = paymentMethod === "card" ? "Pay with Card" : "Confirm Booking";
     }
@@ -163,10 +188,9 @@ function setupFormSubmit() {
 // OPTION 1 : PAIEMENT AVEC STRIPE
 // ========================================
 async function handleStripePayment(formData) {
-  console.log("💳 Création de la session Stripe...");
+  console.log("💳 Creating Stripe checkout session...");
 
-  // Sauvegarde temporaire des infos client (pour les retrouver après paiement)
-  // Stripe les transmettra via metadata, mais on garde une copie locale par sécurité
+  // Sauvegarde temporaire des infos client
   localStorage.setItem("mlb_pending_booking", JSON.stringify({
     ...formData,
     cart: cart,
@@ -183,11 +207,12 @@ async function handleStripePayment(formData) {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create checkout session");
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to create checkout session");
   }
 
   const data = await response.json();
-  console.log("✅ Session créée:", data.id);
+  console.log("✅ Session created:", data.id);
 
   // Redirige vers la page de paiement Stripe
   const result = await stripe.redirectToCheckout({ sessionId: data.id });
@@ -198,10 +223,10 @@ async function handleStripePayment(formData) {
 }
 
 // ========================================
-// OPTION 2 : PAIEMENT SUR PLACE (DISCORD)
+// OPTION 2 : PAIEMENT SUR PLACE (NETLIFY FUNCTION)
 // ========================================
 async function handlePayOnSite(formData) {
-  console.log("🏠 Envoi de la réservation à Discord...");
+  console.log("🏠 Sending booking to Discord via Netlify Function...");
 
   const total = calculateTotal();
 
@@ -214,37 +239,24 @@ async function handlePayOnSite(formData) {
     cartText += `• ${item.name} x${quantity} = $${itemTotal}\n`;
   });
 
-  const discordMessage = {
-    embeds: [{
-      title: "🎉 New Booking - PAY ON SITE 🏠",
-      color: 15138816,
-      fields: [
-        { name: "👤 Customer Name", value: formData.name || "N/A", inline: true },
-        { name: "📧 Email", value: formData.email || "N/A", inline: true },
-        { name: "📍 Address", value: formData.address || "N/A", inline: false },
-        { name: "📱 Phone", value: formData.phone || "N/A", inline: true },
-        { name: "📅 Event Date", value: formData.date || "N/A", inline: true },
-        { name: "📌 Event Location", value: formData.location || "N/A", inline: false },
-        { name: "👥 Number of Guests", value: formData.guests || "N/A", inline: true },
-        { name: "💬 Comments", value: formData.comments || "No comments", inline: false },
-        { name: "🛒 Items Ordered", value: cartText || "No items", inline: false },
-        { name: "💰 Total Amount", value: "$" + total + " (PAY ON SITE)", inline: true },
-        { name: "⏰ Booking Time", value: new Date().toLocaleString("en-US"), inline: true },
-      ],
-    }],
-  };
-
-  const response = await fetch(DISCORD_WEBHOOK, {
+  // Appelle la Netlify Function qui envoie à Discord
+  const response = await fetch("/.netlify/functions/send-booking", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(discordMessage),
+    body: JSON.stringify({
+      customer: formData,
+      cart: cart,
+      total: total,
+      paymentMethod: "site",
+    }),
   });
 
   if (!response.ok) {
-    throw new Error("Discord error: " + response.status);
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to send booking");
   }
 
-  console.log("✅ Réservation envoyée à Discord!");
+  console.log("✅ Booking sent to Discord!");
   showSuccessMessage();
 
   // Vide le panier
@@ -275,4 +287,10 @@ function showSuccessMessage() {
     <div style="font-size:14px;margin-top:10px;opacity:.9;">We'll contact you soon.</div>
   `;
   document.body.appendChild(successDiv);
+
+  setTimeout(() => {
+    successDiv.style.opacity = "0";
+    successDiv.style.transition = "opacity 0.3s ease-out";
+    setTimeout(() => successDiv.remove(), 300);
+  }, 2500);
 }
