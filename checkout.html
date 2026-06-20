@@ -37,7 +37,7 @@
 .btn-submit:disabled{opacity:0.6;cursor:not-allowed}
 .empty-cart{text-align:center;padding:40px;color:#999}
 
-/* ✅ NOUVEAU : Choix du mode de paiement */
+/* ✅ Mode de paiement */
 .payment-methods{margin:24px 0}
 .payment-methods h3{color:#e91e8c;margin-bottom:12px;font-size:18px}
 .payment-option{display:flex;align-items:center;gap:12px;padding:16px;border:2px solid #f3d4e6;border-radius:12px;cursor:pointer;margin-bottom:12px;transition:.2s}
@@ -103,10 +103,9 @@
         <textarea id="comments" name="comments"></textarea>
       </div>
 
-      <!-- ✅ NOUVEAU : CHOIX DU PAIEMENT -->
+      <!-- ✅ PAIEMENT PAR CARTE UNIQUEMENT -->
       <div class="payment-methods">
         <h3>Payment Method</h3>
-
         <label class="payment-option selected" id="optionCard">
           <input type="radio" name="paymentMethod" value="card" checked>
           <span class="pm-icon">💳</span>
@@ -115,18 +114,9 @@
             <span class="pm-desc">Secure online payment via Stripe</span>
           </span>
         </label>
-
-        <label class="payment-option" id="optionSite">
-          <input type="radio" name="paymentMethod" value="site">
-          <span class="pm-icon">🏠</span>
-          <span class="pm-text">
-            <span class="pm-title">Pay on Site</span>
-            <span class="pm-desc">Pay cash on the day of your event</span>
-          </span>
-        </label>
       </div>
 
-      <button type="submit" class="btn-submit" id="submitBtn">Confirm Booking</button>
+      <button type="submit" class="btn-submit" id="submitBtn">Pay with Card</button>
     </form>
   </div>
 

@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- ✅ GOOGLE ADS GTAG -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18226675274"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-18226675274');
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Booking Confirmed - Main Line Bounce</title>
@@ -32,6 +41,35 @@
 </div>
 
 <script>
+  // ✅ Récupère les infos client + le total avant de vider le panier
+  const pending = JSON.parse(localStorage.getItem("mlb_pending_booking")) || {};
+  const total = parseFloat(pending.total) || 1.0;
+
+  // ✅ Enhanced Conversions : on redonne les données client à Google
+  if (typeof gtag !== "undefined" && pending.email) {
+    const nameParts = (pending.name || "").trim().split(" ");
+    gtag('set', 'user_data', {
+      "email": pending.email || "",
+      "phone_number": pending.phone || "",
+      "address": {
+        "first_name": nameParts[0] || "",
+        "last_name": nameParts.slice(1).join(" ") || "",
+        "street": pending.address || "",
+        "country": "US"
+      }
+    });
+  }
+
+  // ✅ CONVERSION BOOKING
+  if (typeof gtag !== "undefined") {
+    gtag('event', 'conversion', {
+      'send_to': 'AW-18226675274/yt2_CK2Y18IcEMr8k_ND',
+      'value': total,
+      'currency': 'USD'
+    });
+    console.log("📊 Conversion Booking envoyée !");
+  }
+
   // Vide le panier après paiement réussi
   localStorage.removeItem("mlb_cart");
   localStorage.removeItem("mlb_pending_booking");

@@ -9,10 +9,16 @@ exports.handler = async (event) => {
   const sig = event.headers["stripe-signature"];
   let stripeEvent;
 
+  // ✅ CORRECTION : on récupère le body BRUT (non modifié)
+  // Stripe exige le body exact pour vérifier la signature
+  const rawBody = event.isBase64Encoded
+    ? Buffer.from(event.body, "base64").toString("utf8")
+    : event.body;
+
   try {
     // Vérifie que la requête vient bien de Stripe (sécurité)
     stripeEvent = stripe.webhooks.constructEvent(
-      event.body,
+      rawBody,           // ← on utilise le body brut au lieu de event.body
       sig,
       STRIPE_WEBHOOK_SECRET
     );

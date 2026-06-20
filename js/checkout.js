@@ -5,9 +5,9 @@
 // 🔑 Ta clé PUBLIQUE Stripe (commence par pk_test_ ou pk_live_)
 const STRIPE_PUBLIC_KEY = "pk_test_51TijiEFP6iINRwJw2zXWPLpRO6hnItDTNlcGQxImahsAlxaCAxBOFgWL8fKhlYWbw79YzeXtJOctTUxY8WSwGA5r00idu9gLrg";
 
-// 📊 Google Ads — remplace par tes vrais identifiants si différents
+// 📊 Google Ads
 const GOOGLE_ADS_ID = "AW-18226675274";
-const CONVERSION_LABEL = "beHlCK_u6bscEMr8k_ND"; // label de ta conversion booking
+const CONVERSION_LABEL = "yt2_CK2Y18IcEMr8k_ND"; // label conversion Booking
 
 // Initialise Stripe
 let stripe = null;
@@ -27,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("🛒 Cart from localStorage:", cart);
 
   loadCart();
-  setupPaymentToggle();
   setupFormSubmit();
 });
 
@@ -76,26 +75,6 @@ function calculateTotal() {
     total += price * quantity;
   });
   return total.toFixed(2);
-}
-
-// ========================================
-// TOGGLE VISUEL DU CHOIX DE PAIEMENT
-// ========================================
-function setupPaymentToggle() {
-  const optionCard = document.getElementById("optionCard");
-  const optionSite = document.getElementById("optionSite");
-  const radios = document.querySelectorAll('input[name="paymentMethod"]');
-
-  radios.forEach((radio) => {
-    radio.addEventListener("change", function () {
-      optionCard.classList.toggle("selected", this.value === "card");
-      optionSite.classList.toggle("selected", this.value === "site");
-
-      // Change le texte du bouton selon le mode
-      const btn = document.getElementById("submitBtn");
-      btn.textContent = this.value === "card" ? "Pay with Card" : "Confirm Booking";
-    });
-  });
 }
 
 // ========================================
@@ -167,29 +146,20 @@ function setupFormSubmit() {
     btn.disabled = true;
     btn.textContent = "Processing...";
 
-    // Quel mode de paiement est sélectionné ?
-    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-    console.log("💳 Payment method:", paymentMethod);
-
     try {
-      if (paymentMethod === "card") {
-        // ===== OPTION 1 : PAIEMENT STRIPE =====
-        await handleStripePayment(formData);
-      } else {
-        // ===== OPTION 2 : PAIEMENT SUR PLACE → NETLIFY FUNCTION =====
-        await handlePayOnSite(formData);
-      }
+      // Un seul mode : paiement par carte (Stripe)
+      await handleStripePayment(formData);
     } catch (error) {
       console.error("❌ Error:", error);
       alert("An error occurred: " + error.message);
       btn.disabled = false;
-      btn.textContent = paymentMethod === "card" ? "Pay with Card" : "Confirm Booking";
+      btn.textContent = "Pay with Card";
     }
   });
 }
 
 // ========================================
-// OPTION 1 : PAIEMENT AVEC STRIPE
+// PAIEMENT AVEC STRIPE
 // ========================================
 async function handleStripePayment(formData) {
   console.log("💳 Creating Stripe checkout session...");
@@ -234,83 +204,6 @@ async function handleStripePayment(formData) {
 }
 
 // ========================================
-// OPTION 2 : PAIEMENT SUR PLACE (NETLIFY FUNCTION)
-// ========================================
-async function handlePayOnSite(formData) {
-  console.log("🏠 Sending booking to Discord via Netlify Function...");
-
-  const total = calculateTotal();
-
-  // Formate le panier pour Discord
-  let cartText = "";
-  cart.forEach((item) => {
-    const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.quantity) || 1;
-    const itemTotal = (price * quantity).toFixed(2);
-    cartText += `• ${item.name} x${quantity} = $${itemTotal}\n`;
-  });
-
-  // Appelle la Netlify Function qui envoie à Discord
-  const response = await fetch("/.netlify/functions/send-booking", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      customer: formData,
-      cart: cart,
-      total: total,
-      paymentMethod: "site",
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to send booking");
-  }
-
-  console.log("✅ Booking sent to Discord!");
-
-  // ✅ ENHANCED CONVERSIONS : envoie les données client + la conversion à Google
-  fireConversion(formData, total);
-
-  showSuccessMessage();
-
-  // Vide le panier
-  cart = [];
-  localStorage.setItem("mlb_cart", JSON.stringify(cart));
-  document.getElementById("checkoutForm").reset();
-  loadCart();
-
-  setTimeout(() => {
-    window.location.href = "index.html";
-  }, 2000);
-}
-
-// ========================================
-// MESSAGE DE SUCCÈS
-// ========================================
-function showSuccessMessage() {
-  const successDiv = document.createElement("div");
-  successDiv.style.cssText = `
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #4CAF50, #45a049); color: white;
-    padding: 40px 60px; border-radius: 10px; font-size: 18px; font-weight: bold;
-    text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.3); z-index: 9999;
-  `;
-  successDiv.innerHTML = `
-    <div style="font-size:50px;margin-bottom:15px;">✅</div>
-    <div>Booking confirmed!</div>
-    <div style="font-size:14px;margin-top:10px;opacity:.9;">We'll contact you soon.</div>
-  `;
-  document.body.appendChild(successDiv);
-
-  setTimeout(() => {
-    successDiv.style.opacity = "0";
-    successDiv.style.transition = "opacity 0.3s ease-out";
-    setTimeout(() => successDiv.remove(), 300);
-  }, 2500);
-}
-
-// ========================================
 // GOOGLE ADS — ENHANCED CONVERSIONS
 // ========================================
 
@@ -337,24 +230,4 @@ function setUserData(formData) {
   });
 
   console.log("📊 user_data envoyé à Google (Enhanced Conversions)");
-}
-
-// Envoie la conversion complète (user_data + event)
-function fireConversion(formData, total) {
-  if (typeof gtag === "undefined") {
-    console.warn("⚠️ gtag non chargé, conversion non envoyée");
-    return;
-  }
-
-  // 1. On donne les données client à Google
-  setUserData(formData);
-
-  // 2. On envoie l'événement de conversion
-  gtag('event', 'conversion', {
-    'send_to': `${GOOGLE_ADS_ID}/${CONVERSION_LABEL}`,
-    'value': parseFloat(total) || 0,
-    'currency': 'USD'
-  });
-
-  console.log("📊 Conversion envoyée à Google Ads !");
 }
