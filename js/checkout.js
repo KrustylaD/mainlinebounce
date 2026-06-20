@@ -5,6 +5,10 @@
 // 🔑 Ta clé PUBLIQUE Stripe (commence par pk_test_ ou pk_live_)
 const STRIPE_PUBLIC_KEY = "pk_test_51TijiEFP6iINRwJw2zXWPLpRO6hnItDTNlcGQxImahsAlxaCAxBOFgWL8fKhlYWbw79YzeXtJOctTUxY8WSwGA5r00idu9gLrg";
 
+// 📊 Google Ads — remplace par tes vrais identifiants si différents
+const GOOGLE_ADS_ID = "AW-18226675274";
+const CONVERSION_LABEL = "beHlCK_u6bscEMr8k_ND"; // label de ta conversion booking
+
 // Initialise Stripe
 let stripe = null;
 if (typeof Stripe !== "undefined") {
@@ -21,7 +25,7 @@ let cart = JSON.parse(localStorage.getItem("mlb_cart")) || [];
 document.addEventListener("DOMContentLoaded", function () {
   console.log("✅ Checkout page loaded");
   console.log("🛒 Cart from localStorage:", cart);
-  
+
   loadCart();
   setupPaymentToggle();
   setupFormSubmit();
@@ -190,10 +194,17 @@ function setupFormSubmit() {
 async function handleStripePayment(formData) {
   console.log("💳 Creating Stripe checkout session...");
 
-  // Sauvegarde temporaire des infos client
+  const total = calculateTotal();
+
+  // ✅ ENHANCED CONVERSIONS : on prépare les données AVANT la redirection
+  // (Stripe redirige hors du site, donc on set les données client maintenant)
+  setUserData(formData);
+
+  // Sauvegarde temporaire des infos client (pour la page de succès Stripe)
   localStorage.setItem("mlb_pending_booking", JSON.stringify({
     ...formData,
     cart: cart,
+    total: total,
   }));
 
   // Appelle la Netlify Function qui crée la session Stripe
@@ -257,6 +268,10 @@ async function handlePayOnSite(formData) {
   }
 
   console.log("✅ Booking sent to Discord!");
+
+  // ✅ ENHANCED CONVERSIONS : envoie les données client + la conversion à Google
+  fireConversion(formData, total);
+
   showSuccessMessage();
 
   // Vide le panier
@@ -293,4 +308,53 @@ function showSuccessMessage() {
     successDiv.style.transition = "opacity 0.3s ease-out";
     setTimeout(() => successDiv.remove(), 300);
   }, 2500);
+}
+
+// ========================================
+// GOOGLE ADS — ENHANCED CONVERSIONS
+// ========================================
+
+// Envoie les données client à Google (hashées automatiquement par Google côté serveur)
+function setUserData(formData) {
+  if (typeof gtag === "undefined") {
+    console.warn("⚠️ gtag non chargé, user_data non envoyé");
+    return;
+  }
+
+  const nameParts = (formData.name || "").trim().split(" ");
+  const firstName = nameParts[0] || "";
+  const lastName = nameParts.slice(1).join(" ") || "";
+
+  gtag('set', 'user_data', {
+    "email": formData.email || "",
+    "phone_number": formData.phone || "",
+    "address": {
+      "first_name": firstName,
+      "last_name": lastName,
+      "street": formData.address || "",
+      "country": "US"
+    }
+  });
+
+  console.log("📊 user_data envoyé à Google (Enhanced Conversions)");
+}
+
+// Envoie la conversion complète (user_data + event)
+function fireConversion(formData, total) {
+  if (typeof gtag === "undefined") {
+    console.warn("⚠️ gtag non chargé, conversion non envoyée");
+    return;
+  }
+
+  // 1. On donne les données client à Google
+  setUserData(formData);
+
+  // 2. On envoie l'événement de conversion
+  gtag('event', 'conversion', {
+    'send_to': `${GOOGLE_ADS_ID}/${CONVERSION_LABEL}`,
+    'value': parseFloat(total) || 0,
+    'currency': 'USD'
+  });
+
+  console.log("📊 Conversion envoyée à Google Ads !");
 }
