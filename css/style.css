@@ -1079,3 +1079,168 @@ ul   { list-style: none; }
     width: 100%;
   }
 }
+/* ============================================
+   PROMO GRAND OPENING
+   ============================================ */
+
+/* --- Bannière d'annonce (page d'accueil) --- */
+.promo-banner {
+  background: var(--color-pink);
+  color: #fff;
+  text-align: center;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+  animation: promoPulse 2.5s ease-in-out infinite;
+}
+
+/* Effet shimmer qui traverse la bannière */
+.promo-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.35),
+    transparent
+  );
+  animation: promoShimmer 3.5s ease-in-out infinite;
+}
+
+.promo-banner span.promo-text { position: relative; z-index: 1; }
+
+.promo-banner strong { font-weight: 800; }
+
+.promo-banner .promo-btn {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  color: var(--color-pink);
+  padding: 6px 18px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.promo-banner .promo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+@keyframes promoPulse {
+  0%, 100% { background: var(--color-pink); }
+  50%      { background: var(--color-pink-hover); }
+}
+
+@keyframes promoShimmer {
+  0%   { left: -100%; }
+  60%  { left: 130%; }
+  100% { left: 130%; }
+}
+
+@media (max-width: 600px) {
+  .promo-banner {
+    font-size: 0.82rem;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  .promo-banner .promo-btn {
+    padding: 5px 14px;
+    font-size: 0.78rem;
+  }
+}
+/* ============================================
+   PROMO — PRIX BARRÉ + BADGE + BANNIÈRE PRODUIT
+   ============================================ */
+
+/* Prix barré (ancien prix) */
+.price-old {
+  color: var(--color-gray);
+  text-decoration: line-through;
+  font-weight: 600;
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+/* Nouveau prix dans la price-tag */
+.price-new { font-weight: 800; }
+
+/* Badge Grand Opening sur la carte produit */
+.promo-badge {
+  display: inline-block;
+  background: #e63329;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  align-self: flex-start;
+  box-shadow: 0 4px 12px rgba(230,51,41,0.3);
+}
+
+/* Bannière promo sur page détail produit */
+.promo-detail {
+  background: #e63329;
+  color: #fff;
+  border-radius: var(--radius-md);
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(230,51,41,0.25);
+}
+.promo-detail .promo-detail-head {
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.promo-detail .promo-detail-price {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.promo-detail .promo-detail-price .strike {
+  text-decoration: line-through;
+  opacity: 0.7;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+/* Compte à rebours */
+.countdown {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.countdown-unit {
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 8px 14px;
+  text-align: center;
+  min-width: 60px;
+}
+.countdown-num {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.countdown-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.9;
+}
