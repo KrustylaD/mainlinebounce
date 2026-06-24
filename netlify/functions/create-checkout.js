@@ -23,7 +23,7 @@ exports.handler = async (event) => {
         // Stripe utilise les CENTS → on multiplie par 100
         unit_amount: Math.round(parseFloat(item.price) * 100),
       },
-      quantity: parseInt(item.quantity) || 1,
+      quantity: parseInt(item.qty) || 1,
     }));
 
     // Crée la session de paiement
@@ -46,7 +46,7 @@ exports.handler = async (event) => {
         comments: (customer.comments || "").substring(0, 400),
         // Résumé du panier (metadata limité à 500 caractères par champ)
         items: cart
-          .map((i) => `${i.name} x${i.quantity || 1}`)
+          .map((i) => `${i.name} x${i.qty || 1}`)
           .join(", ")
           .substring(0, 450),
       },

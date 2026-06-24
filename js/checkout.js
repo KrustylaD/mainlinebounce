@@ -48,7 +48,7 @@ function loadCart() {
 
   cart.forEach((item) => {
     const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.quantity) || 1;
+    const quantity = parseInt(item.qty) || 1;   // ✅ item.qty (corrigé)
     const itemTotal = price * quantity;
     total += itemTotal;
 
@@ -71,7 +71,7 @@ function calculateTotal() {
   let total = 0;
   cart.forEach((item) => {
     const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.quantity) || 1;
+    const quantity = parseInt(item.qty) || 1;   // ✅ item.qty (corrigé)
     total += price * quantity;
   });
   return total.toFixed(2);
