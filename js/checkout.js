@@ -3,7 +3,7 @@
 // ========================================
 
 // 🔑 Ta clé PUBLIQUE Stripe (commence par pk_test_ ou pk_live_)
-const STRIPE_PUBLIC_KEY = "pk_test_51TijiEFP6iINRwJw2zXWPLpRO6hnItDTNlcGQxImahsAlxaCAxBOFgWL8fKhlYWbw79YzeXtJOctTUxY8WSwGA5r00idu9gLrg";
+const STRIPE_PUBLIC_KEY = "pk_live_51TijhzFJaoRvZGr1l39HwB6tqpIhl0ppbIxsQ9fpxW2BR4Xo9lepgPxcrEpxN0txZi64iKVNZaPhA2ujro9BEpIw00sl5Ojy7i";
 
 // 📊 Google Ads
 const GOOGLE_ADS_ID = "AW-18226675274";
