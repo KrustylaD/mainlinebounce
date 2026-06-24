@@ -3,6 +3,7 @@
    ============================================ */
 
 const CART_KEY = 'mlb_cart';
+const MAX_QTY = 100; // Quantité maximum par article
 
 /* ============================================
    PANIER - Lecture / écriture localStorage
@@ -39,7 +40,7 @@ function addToCart(product) {
   saveCart(cart);
 }
 
-/* ---- Modifier la quantité ---- */
+/* ---- Modifier la quantité (boutons + / −) ---- */
 function changeQty(id, delta) {
   const cart = getCart();
   const item = cart.find(i => i.id === id);
@@ -49,6 +50,24 @@ function changeQty(id, delta) {
     removeFromCart(id);
     return;
   }
+  if (item.qty > MAX_QTY) item.qty = MAX_QTY;
+  saveCart(cart);
+  renderCartPage();
+}
+
+/* ---- 🔑 NOUVEAU : Définir la quantité directement (saisie clavier) ---- */
+function setQty(id, value) {
+  const cart = getCart();
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+
+  let qty = parseInt(value, 10);
+
+  // Si vide ou invalide → on remet à 1
+  if (isNaN(qty) || qty < 1) qty = 1;
+  if (qty > MAX_QTY) qty = MAX_QTY;
+
+  item.qty = qty;
   saveCart(cart);
   renderCartPage();
 }
@@ -111,7 +130,7 @@ function initAddButtons() {
 
 /* ---- Rendu de la page panier ---- */
 function renderCartPage() {
-  const list  = document.querySelector('.cart-list');
+  const list = document.querySelector('.cart-list');
   if (!list) return;
 
   const empty   = document.querySelector('.cart-empty');
@@ -140,7 +159,15 @@ function renderCartPage() {
           <span class="price-tag">$${item.price}</span>
           <div class="cart-qty">
             <button class="btn btn-outline btn-sm" onclick="changeQty('${item.id}', -1)">−</button>
-            <span class="cart-qty-num">${item.qty}</span>
+            <input
+              type="number"
+              class="cart-qty-input"
+              value="${item.qty}"
+              min="1"
+              max="${MAX_QTY}"
+              onchange="setQty('${item.id}', this.value)"
+              onclick="this.select()"
+            />
             <button class="btn btn-outline btn-sm" onclick="changeQty('${item.id}', 1)">+</button>
           </div>
         </div>
@@ -198,14 +225,12 @@ function initFAQ() {
     question.addEventListener('click', function() {
       const isOpen = item.classList.contains('active');
 
-      // Ferme TOUTES les autres FAQ
       faqItems.forEach(other => {
         other.classList.remove('active');
         const icon = other.querySelector('.faq-toggle-icon');
         if (icon) icon.textContent = '+';
       });
 
-      // Ouvre celle-ci si elle était fermée
       if (!isOpen) {
         item.classList.add('active');
         toggleIcon.textContent = '−';
@@ -225,23 +250,16 @@ function initHamburger() {
     return;
   }
 
-  console.log('✅ Hamburger initialized');
-
-  // Ouvre/ferme le menu au clic sur le hamburger
   hamburger.addEventListener('click', function(e) {
     e.stopPropagation();
-    console.log('🍔 Hamburger clicked');
-
     hamburger.classList.toggle('active');
     nav.classList.toggle('active');
     if (overlay) overlay.classList.toggle('active');
     hamburger.setAttribute('aria-expanded', hamburger.classList.contains('active'));
   });
 
-  // Ferme le menu quand on clique sur le overlay
   if (overlay) {
     overlay.addEventListener('click', function() {
-      console.log('Overlay clicked - closing menu');
       hamburger.classList.remove('active');
       nav.classList.remove('active');
       overlay.classList.remove('active');
@@ -249,10 +267,8 @@ function initHamburger() {
     });
   }
 
-  // Ferme le menu quand on clique sur un lien
   nav.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', function() {
-      console.log('Link clicked - closing menu');
       hamburger.classList.remove('active');
       nav.classList.remove('active');
       if (overlay) overlay.classList.remove('active');
@@ -263,12 +279,10 @@ function initHamburger() {
 
 /* ---- Initialisation UNIQUE ---- */
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('🚀 Page loaded - initializing');
-
   updateCartBadge();
   initAddButtons();
   renderCartPage();
   initFAQ();
   initHamburger();
-  initCountdown();  // ← COMPTE À REBOURS ICI
+  initCountdown();
 });

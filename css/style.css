@@ -792,10 +792,40 @@ ul   { list-style: none; }
   font-size: 1.1rem;
   line-height: 1;
 }
-.cart-qty-num {
-  font-weight: 700;
-  min-width: 22px;
+
+/* Champ de saisie quantité (remplace l'ancien .cart-qty-num) */
+.cart-qty-input {
+  width: 56px;
+  height: 38px;
   text-align: center;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-dark);
+  background: var(--color-white);
+  border: 2px solid var(--color-pink-pale);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -moz-appearance: textfield;
+}
+
+/* Enlève les flèches natives (Chrome / Safari / Edge) */
+.cart-qty-input::-webkit-outer-spin-button,
+.cart-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* État focus (quand on clique pour taper) */
+.cart-qty-input:focus {
+  outline: none;
+  border-color: var(--color-pink);
+  box-shadow: 0 0 0 3px rgba(245, 106, 155, 0.15);
+}
+
+/* Hover léger */
+.cart-qty-input:hover {
+  border-color: var(--color-pink);
 }
 
 /* Colonne droite : total ligne + remove */
@@ -1079,6 +1109,7 @@ ul   { list-style: none; }
     width: 100%;
   }
 }
+
 /* ============================================
    PROMO GRAND OPENING
    ============================================ */
@@ -1161,6 +1192,7 @@ ul   { list-style: none; }
     font-size: 0.78rem;
   }
 }
+
 /* ============================================
    PROMO — PRIX BARRÉ + BADGE + BANNIÈRE PRODUIT
    ============================================ */
