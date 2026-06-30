@@ -1,7 +1,12 @@
 const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
-  const store = getStore("blocked-dates");
+  const store = getStore({
+    name: "blocked-dates",
+    siteID: process.env.NETLIFY_SITE_ID,
+    token: process.env.NETLIFY_BLOBS_TOKEN,
+  });
+
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type, x-admin-key",
