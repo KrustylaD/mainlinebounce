@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Main Line Bounce - Inflatable rentals",
   "dependencies": {
+    "@netlify/blobs": "^10.7.9",
     "stripe": "^14.0.0"
   }
 }
