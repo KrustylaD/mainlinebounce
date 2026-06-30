@@ -2,12 +2,12 @@
 // CONFIGURATION
 // ========================================
 
-// 🔑 Ta clé PUBLIQUE Stripe (commence par pk_test_ ou pk_live_)
+// 🔑 Ta clé PUBLIQUE Stripe
 const STRIPE_PUBLIC_KEY = "pk_live_51TijhzFJaoRvZGr1l39HwB6tqpIhl0ppbIxsQ9fpxW2BR4Xo9lepgPxcrEpxN0txZi64iKVNZaPhA2ujro9BEpIw00sl5Ojy7i";
 
 // 📊 Google Ads
 const GOOGLE_ADS_ID = "AW-18226675274";
-const CONVERSION_LABEL = "yt2_CK2Y18IcEMr8k_ND"; // label conversion Booking
+const CONVERSION_LABEL = "yt2_CK2Y18IcEMr8k_ND";
 
 // Initialise Stripe
 let stripe = null;
@@ -15,6 +15,17 @@ if (typeof Stripe !== "undefined") {
   stripe = Stripe(STRIPE_PUBLIC_KEY);
 } else {
   console.error("⚠️ Stripe.js non chargé !");
+}
+
+// ========================================
+// FALLBACK POPUP (si showModal pas encore défini)
+// ========================================
+function safeModal(message, title, icon) {
+  if (typeof showModal === "function") {
+    showModal(message, title, icon);
+  } else {
+    alert(message);
+  }
 }
 
 // ========================================
@@ -48,7 +59,7 @@ function loadCart() {
 
   cart.forEach((item) => {
     const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.qty) || 1;   // ✅ item.qty (corrigé)
+    const quantity = parseInt(item.qty) || 1;
     const itemTotal = price * quantity;
     total += itemTotal;
 
@@ -71,7 +82,7 @@ function calculateTotal() {
   let total = 0;
   cart.forEach((item) => {
     const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.qty) || 1;   // ✅ item.qty (corrigé)
+    const quantity = parseInt(item.qty) || 1;
     total += price * quantity;
   });
   return total.toFixed(2);
@@ -98,19 +109,19 @@ function getFormData() {
 // ========================================
 function validateForm(formData) {
   if (!formData.name) {
-    alert("Please enter your name");
+    safeModal("Please enter your name.", "Missing information", "📝");
     return false;
   }
   if (!formData.email) {
-    alert("Please enter your email");
+    safeModal("Please enter your email.", "Missing information", "📝");
     return false;
   }
   if (!formData.address) {
-    alert("Please enter your address");
+    safeModal("Please enter your address.", "Missing information", "📝");
     return false;
   }
   if (!formData.guests) {
-    alert("Please enter number of guests");
+    safeModal("Please enter number of guests.", "Missing information", "📝");
     return false;
   }
   return true;
@@ -129,15 +140,13 @@ function setupFormSubmit() {
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    // Vérifie qu'il y a des articles
     if (!cart || cart.length === 0) {
-      alert("Your cart is empty!");
+      safeModal("Your cart is empty!", "Empty cart", "🛒");
       return;
     }
 
     const formData = getFormData();
 
-    // Valide le formulaire
     if (!validateForm(formData)) {
       return;
     }
@@ -147,11 +156,10 @@ function setupFormSubmit() {
     btn.textContent = "Processing...";
 
     try {
-      // Un seul mode : paiement par carte (Stripe)
       await handleStripePayment(formData);
     } catch (error) {
       console.error("❌ Error:", error);
-      alert("An error occurred: " + error.message);
+      safeModal("An error occurred: " + error.message, "Payment error", "❌");
       btn.disabled = false;
       btn.textContent = "Pay with Card";
     }
@@ -166,18 +174,14 @@ async function handleStripePayment(formData) {
 
   const total = calculateTotal();
 
-  // ✅ ENHANCED CONVERSIONS : on prépare les données AVANT la redirection
-  // (Stripe redirige hors du site, donc on set les données client maintenant)
   setUserData(formData);
 
-  // Sauvegarde temporaire des infos client (pour la page de succès Stripe)
   localStorage.setItem("mlb_pending_booking", JSON.stringify({
     ...formData,
     cart: cart,
     total: total,
   }));
 
-  // Appelle la Netlify Function qui crée la session Stripe
   const response = await fetch("/.netlify/functions/create-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -195,7 +199,6 @@ async function handleStripePayment(formData) {
   const data = await response.json();
   console.log("✅ Session created:", data.id);
 
-  // Redirige vers la page de paiement Stripe
   const result = await stripe.redirectToCheckout({ sessionId: data.id });
 
   if (result.error) {
@@ -206,8 +209,6 @@ async function handleStripePayment(formData) {
 // ========================================
 // GOOGLE ADS — ENHANCED CONVERSIONS
 // ========================================
-
-// Envoie les données client à Google (hashées automatiquement par Google côté serveur)
 function setUserData(formData) {
   if (typeof gtag === "undefined") {
     console.warn("⚠️ gtag non chargé, user_data non envoyé");

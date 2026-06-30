@@ -132,9 +132,37 @@
 
 </div>
 
+<!-- ✅ POPUP PERSONNALISÉE -->
+<div id="customModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon" id="modalIcon">⚠️</div>
+    <h3 class="modal-title" id="modalTitle">Date non disponible</h3>
+    <p class="modal-text" id="modalText">Sorry, this date is not available for one of the items in your cart. Please choose another date.</p>
+    <button class="modal-btn" id="modalClose">OK</button>
+  </div>
+</div>
+
 <!-- ✅ CHECKOUT JS -->
 <script src="js/checkout.js"></script>
 <script src="js/main.js"></script>
+
+<!-- ✅ FONCTION POPUP GLOBALE (utilisée par checkout.js + blocage dates) -->
+<script>
+function showModal(message, title, icon) {
+  document.getElementById("modalTitle").textContent = title || "Oops!";
+  document.getElementById("modalText").textContent = message || "";
+  document.getElementById("modalIcon").textContent = icon || "⚠️";
+  document.getElementById("customModal").classList.add("show");
+}
+function hideModal() {
+  document.getElementById("customModal").classList.remove("show");
+}
+document.getElementById("modalClose").addEventListener("click", hideModal);
+document.getElementById("customModal").addEventListener("click", function (e) {
+  if (e.target === this) hideModal();
+});
+</script>
+
 <!-- ✅ BLOCAGE DES DATES INDISPONIBLES (par inflatable + global) -->
 <script>
 (function () {
@@ -143,14 +171,12 @@
   const form = document.getElementById("checkoutForm");
   if (!dateInput) return;
 
-  let allBlocked = {};        // toutes les données { id: [dates], ALL: [dates] }
-  let relevantDates = [];     // dates bloquées qui concernent le panier actuel
+  let allBlocked = {};
+  let relevantDates = [];
 
-  // Empêche de choisir une date passée
   const today = new Date().toISOString().split("T")[0];
   dateInput.setAttribute("min", today);
 
-  // Récupère les ids présents dans le panier
   function getCartItemIds() {
     try {
       const cart = JSON.parse(localStorage.getItem("mlb_cart")) || [];
@@ -160,23 +186,16 @@
     }
   }
 
-  // Calcule les dates bloquées qui concernent CE panier
   function computeRelevantDates() {
     const ids = getCartItemIds();
     const set = new Set();
-
-    // 1) blocage global (ALL) → toujours pris en compte
     (allBlocked["ALL"] || []).forEach(d => set.add(d));
-
-    // 2) blocage spécifique à chaque inflatable du panier
     ids.forEach(id => {
       (allBlocked[id] || []).forEach(d => set.add(d));
     });
-
     relevantDates = Array.from(set);
   }
 
-  // Charge les dates bloquées
   fetch(API)
     .then(r => r.json())
     .then(data => {
@@ -185,28 +204,33 @@
     })
     .catch(() => { allBlocked = {}; relevantDates = []; });
 
-  // Vérifie à chaque changement de date
   dateInput.addEventListener("change", function () {
-    computeRelevantDates(); // recalcule au cas où le panier a changé
+    computeRelevantDates();
     if (relevantDates.includes(dateInput.value)) {
-      alert("⚠️ Sorry, this date is not available for one of the items in your cart. Please choose another date.");
+      showModal(
+        "Sorry, this date is not available for one of the items in your cart. Please choose another date.",
+        "Date not available",
+        "📅"
+      );
       dateInput.value = "";
     }
   });
 
-  // Sécurité : bloque la soumission si date indisponible
   if (form) {
     form.addEventListener("submit", function (e) {
       computeRelevantDates();
       if (dateInput.value && relevantDates.includes(dateInput.value)) {
         e.preventDefault();
-        alert("⚠️ Sorry, this date is not available for one of the items in your cart. Please choose another date.");
+        showModal(
+          "Sorry, this date is not available for one of the items in your cart. Please choose another date.",
+          "Date not available",
+          "📅"
+        );
       }
     });
   }
 })();
 </script>
-
 
 </body>
 </html>
