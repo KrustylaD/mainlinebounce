@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Gestion des dates</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f4f4f4; }
+    h1 { text-align: center; color: #333; }
+    .box { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    label { display: block; margin: 10px 0 5px; font-weight: bold; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; color: #fff; }
+    .block-btn { background: #e74c3c; }
+    .unblock-btn { background: #27ae60; }
+    #status { text-align: center; margin-top: 15px; font-weight: bold; min-height: 20px; }
+    .list { font-size: 14px; }
+    .list li { margin: 4px 0; }
+    .list ul { margin: 4px 0 12px; padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🔐 Gestion des dates bloquées</h1>
+
+  <div class="box">
+    <label>Clé admin</label>
+    <input type="password" id="adminKey" placeholder="Ta clé secrète">
+
+    <label>Date à bloquer / débloquer</label>
+    <input type="date" id="date">
+
+    <button class="block-btn" onclick="sendAction('block')">🚫 Bloquer cette date</button>
+    <button class="unblock-btn" onclick="sendAction('unblock')">✅ Débloquer cette date</button>
+
+    <div id="status"></div>
+  </div>
+
+  <div class="box">
+    <h3>📅 Dates actuellement bloquées</h3>
+    <div class="list" id="blockedList">Chargement...</div>
+  </div>
+
+  <script>
+    const API = "/.netlify/functions/blocked-dates";
+    const ITEM = "ALL"; // blocage global (toutes dates confondues)
+
+    async function sendAction(action) {
+      const status = document.getElementById("status");
+      const adminKey = document.getElementById("adminKey").value.trim();
+      const date = document.getElementById("date").value;
+
+      if (!adminKey) { status.textContent = "❌ Entre ta clé admin"; status.style.color = "red"; return; }
+      if (!date)     { status.textContent = "❌ Choisis une date"; status.style.color = "red"; return; }
+
+      status.textContent = "⏳ En cours...";
+      status.style.color = "#333";
+
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+          body: JSON.stringify({ item: ITEM, date: date, action: action })
+        });
+
+        if (res.status === 401) {
+          status.textContent = "❌ Clé admin incorrecte";
+          status.style.color = "red";
+          return;
+        }
+
+        if (res.ok) {
+          status.textContent = action === "block"
+            ? "✅ Date bloquée : " + date
+            : "✅ Date débloquée : " + date;
+          status.style.color = "green";
+          loadBlocked();
+        } else {
+          status.textContent = "❌ Erreur serveur";
+          status.style.color = "red";
+        }
+      } catch (e) {
+        status.textContent = "❌ Erreur réseau";
+        status.style.color = "red";
+      }
+    }
+
+    async function loadBlocked() {
+      const list = document.getElementById("blockedList");
+      try {
+        const res = await fetch(API);
+        const data = await res.json();
+        const dates = (data[ITEM] || []).sort();
+        if (dates.length === 0) {
+          list.textContent = "Aucune date bloquée.";
+          return;
+        }
+        let html = "<ul>";
+        for (const d of dates) html += `<li>${d}</li>`;
+        html += "</ul>";
+        list.innerHTML = html;
+      } catch (e) {
+        list.textContent = "Erreur de chargement.";
+      }
+    }
+
+    loadBlocked();
+  </script>
+</body>
+</html>

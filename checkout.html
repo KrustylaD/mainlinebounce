@@ -135,6 +135,46 @@
 <!-- ✅ CHECKOUT JS -->
 <script src="js/checkout.js"></script>
 <script src="js/main.js"></script>
+<!-- ✅ BLOCAGE DES DATES INDISPONIBLES -->
+<script>
+(function () {
+  const API = "/.netlify/functions/blocked-dates";
+  const ITEM = "ALL";
+  const dateInput = document.getElementById("date");
+  const form = document.getElementById("checkoutForm");
+  if (!dateInput) return;
+
+  let blockedDates = [];
+
+  // Empêche de choisir une date passée
+  const today = new Date().toISOString().split("T")[0];
+  dateInput.setAttribute("min", today);
+
+  // Charge les dates bloquées
+  fetch(API)
+    .then(r => r.json())
+    .then(data => { blockedDates = data[ITEM] || []; })
+    .catch(() => { blockedDates = []; });
+
+  // Vérifie à chaque changement de date
+  dateInput.addEventListener("change", function () {
+    if (blockedDates.includes(dateInput.value)) {
+      alert("⚠️ Sorry, this date is not available. Please choose another date.");
+      dateInput.value = "";
+    }
+  });
+
+  // Sécurité : bloque la soumission si date indisponible
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      if (dateInput.value && blockedDates.includes(dateInput.value)) {
+        e.preventDefault();
+        alert("⚠️ Sorry, this date is not available. Please choose another date.");
+      }
+    });
+  }
+})();
+</script>
 
 </body>
 </html>
