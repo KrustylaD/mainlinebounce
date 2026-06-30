@@ -135,31 +135,61 @@
 <!-- ✅ CHECKOUT JS -->
 <script src="js/checkout.js"></script>
 <script src="js/main.js"></script>
-<!-- ✅ BLOCAGE DES DATES INDISPONIBLES -->
+<!-- ✅ BLOCAGE DES DATES INDISPONIBLES (par inflatable + global) -->
 <script>
 (function () {
   const API = "/.netlify/functions/blocked-dates";
-  const ITEM = "ALL";
   const dateInput = document.getElementById("date");
   const form = document.getElementById("checkoutForm");
   if (!dateInput) return;
 
-  let blockedDates = [];
+  let allBlocked = {};        // toutes les données { id: [dates], ALL: [dates] }
+  let relevantDates = [];     // dates bloquées qui concernent le panier actuel
 
   // Empêche de choisir une date passée
   const today = new Date().toISOString().split("T")[0];
   dateInput.setAttribute("min", today);
 
+  // Récupère les ids présents dans le panier
+  function getCartItemIds() {
+    try {
+      const cart = JSON.parse(localStorage.getItem("mlb_cart")) || [];
+      return cart.map(i => i.id);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Calcule les dates bloquées qui concernent CE panier
+  function computeRelevantDates() {
+    const ids = getCartItemIds();
+    const set = new Set();
+
+    // 1) blocage global (ALL) → toujours pris en compte
+    (allBlocked["ALL"] || []).forEach(d => set.add(d));
+
+    // 2) blocage spécifique à chaque inflatable du panier
+    ids.forEach(id => {
+      (allBlocked[id] || []).forEach(d => set.add(d));
+    });
+
+    relevantDates = Array.from(set);
+  }
+
   // Charge les dates bloquées
   fetch(API)
     .then(r => r.json())
-    .then(data => { blockedDates = data[ITEM] || []; })
-    .catch(() => { blockedDates = []; });
+    .then(data => {
+      allBlocked = data || {};
+      computeRelevantDates();
+    })
+    .catch(() => { allBlocked = {}; relevantDates = []; });
 
   // Vérifie à chaque changement de date
   dateInput.addEventListener("change", function () {
-    if (blockedDates.includes(dateInput.value)) {
-      alert("⚠️ Sorry, this date is not available. Please choose another date.");
+    computeRelevantDates(); // recalcule au cas où le panier a changé
+    if (relevantDates.includes(dateInput.value)) {
+      alert("⚠️ Sorry, this date is not available for one of the items in your cart. Please choose another date.");
       dateInput.value = "";
     }
   });
@@ -167,14 +197,16 @@
   // Sécurité : bloque la soumission si date indisponible
   if (form) {
     form.addEventListener("submit", function (e) {
-      if (dateInput.value && blockedDates.includes(dateInput.value)) {
+      computeRelevantDates();
+      if (dateInput.value && relevantDates.includes(dateInput.value)) {
         e.preventDefault();
-        alert("⚠️ Sorry, this date is not available. Please choose another date.");
+        alert("⚠️ Sorry, this date is not available for one of the items in your cart. Please choose another date.");
       }
     });
   }
 })();
 </script>
+
 
 </body>
 </html>
