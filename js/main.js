@@ -185,32 +185,6 @@ function renderCartPage() {
 }
 
 /* ============================================
-   COMPTE À REBOURS PROMO
-   ============================================ */
-function initCountdown() {
-  const el = document.querySelector('[data-countdown]');
-  if (!el) return;
-
-  const end = new Date(el.getAttribute('data-countdown')).getTime();
-  const d = el.querySelector('[data-days]');
-  const h = el.querySelector('[data-hours]');
-  const m = el.querySelector('[data-mins]');
-  const s = el.querySelector('[data-secs]');
-
-  function tick() {
-    let diff = end - Date.now();
-    if (diff < 0) diff = 0;
-    if (d) d.textContent = Math.floor(diff / 86400000);
-    if (h) h.textContent = Math.floor((diff % 86400000) / 3600000);
-    if (m) m.textContent = Math.floor((diff % 3600000) / 60000);
-    if (s) s.textContent = Math.floor((diff % 60000) / 1000);
-  }
-
-  tick();
-  setInterval(tick, 1000);
-}
-
-/* ============================================
    FAQ ACCORDÉON
    ============================================ */
 function initFAQ() {
