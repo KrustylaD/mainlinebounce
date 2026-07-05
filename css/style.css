@@ -544,6 +544,30 @@ ul   { list-style: none; }
   border-radius: 12px;
 }
 
+/* Bloc dimensions sur page détail */
+.size-info {
+  background: var(--color-pink-pale);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.size-info h3 {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-dark);
+}
+
+.size-info p {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-pink);
+}
+
 /* Boutons côte à côte */
 .detail-buttons {
   display: flex;
