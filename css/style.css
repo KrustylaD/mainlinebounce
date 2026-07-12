@@ -1418,7 +1418,6 @@ ul   { list-style: none; }
   max-width: 90%;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
 }
 
 .combo-composite .plus-sign {
