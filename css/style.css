@@ -376,6 +376,7 @@ ul   { list-style: none; }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 28px;
+  align-items: stretch;
 }
 
 /* Carte produit */
@@ -387,6 +388,7 @@ ul   { list-style: none; }
   display: flex;
   flex-direction: column;
   gap: 14px;
+  height: 100%;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -400,7 +402,7 @@ ul   { list-style: none; }
   background: var(--color-pink-pale);
   border-radius: var(--radius-md);
   overflow: hidden;
-  height: 200px;
+  height: 210px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -417,6 +419,13 @@ ul   { list-style: none; }
   font-size: 1rem;
   font-weight: 700;
   color: var(--color-dark);
+  min-height: 3.2em;
+  display: flex;
+  align-items: center;
+}
+
+.product-card:not(:has(.promo-badge)) .price-tag {
+  margin-top: 32px;
 }
 
 /* Bande de prix */
@@ -429,6 +438,16 @@ ul   { list-style: none; }
   padding: 8px 16px;
   border-radius: 8px;
   width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.products-grid .product-card .btn,
+.products-grid .product-card button.btn {
+  width: 100%;
+  justify-content: center;
 }
 
 /* ============================================
@@ -1378,4 +1397,33 @@ ul   { list-style: none; }
 @keyframes modalPopIn {
   from { transform: scale(0.85); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+/* Composites pour les combos */
+.combo-composite {
+  position: relative;
+  width: 100%;
+  height: 210px;
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe0eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.combo-composite img {
+  max-height: 170px;
+  max-width: 90%;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+
+.combo-composite .plus-sign {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ff69b4;
+  opacity: 0.6;
 }

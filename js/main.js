@@ -251,6 +251,69 @@ function initHamburger() {
   });
 }
 
+/* ===== COUNTDOWN TIMER ===== */
+function initCountdown() {
+  const countdownEl = document.getElementById('countdown');
+  if (!countdownEl) return;
+
+  function updateCountdown() {
+    const now = new Date();
+    const targetDate = new Date();
+    targetDate.setHours(23, 59, 59, 999);
+
+    const diff = targetDate - now;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+}
+
+/* ===== PARTY PACKAGE COMBO (AVEC IMAGE DYNAMIQUE) ===== */
+function initPartyPackage() {
+  const radioButtons = document.querySelectorAll('input[name="inflatable-choice"]');
+  const inflatableImage = document.getElementById('inflatable-image');
+  const addPartyBtn = document.getElementById('btn-add-party-package');
+
+  if (!radioButtons.length || !inflatableImage || !addPartyBtn) return;
+
+  // Change l'image quand on change de choix
+  radioButtons.forEach(radio => {
+    radio.addEventListener('change', function() {
+      const imageUrl = this.getAttribute('data-image');
+      inflatableImage.src = imageUrl;
+      inflatableImage.style.transition = 'opacity 0.3s ease';
+      inflatableImage.style.opacity = '0.7';
+      setTimeout(() => {
+        inflatableImage.style.opacity = '1';
+      }, 150);
+    });
+  });
+
+  // Ajoute au panier avec la BONNE IMAGE
+  addPartyBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const selectedInflatable = document.querySelector('input[name="inflatable-choice"]:checked').value;
+    const selectedRadio = document.querySelector('input[name="inflatable-choice"]:checked');
+    const inflatableName = selectedInflatable === 'magic-castle' ? 'Magic Castle' : 'SuperHero Combo';
+    const selectedImage = selectedRadio.getAttribute('data-image'); // L'IMAGE CORRECTE!
+    
+    addToCart({
+      id: 'combo-special-2-' + selectedInflatable,  // ID unique par choix
+      name: `Party Package (${inflatableName})`,
+      price: 550,
+      image: selectedImage  // ✅ IMAGE CORRECTE
+    });
+    
+    showAddedFeedback(this);
+  });
+}
+
 /* ---- Initialisation UNIQUE ---- */
 document.addEventListener('DOMContentLoaded', function () {
   updateCartBadge();
@@ -259,4 +322,5 @@ document.addEventListener('DOMContentLoaded', function () {
   initFAQ();
   initHamburger();
   initCountdown();
+  initPartyPackage();  // ← NOUVEAU
 });
