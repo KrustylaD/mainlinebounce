@@ -1,4 +1,5 @@
 const { getStore } = require("@netlify/blobs");
+const crypto = require("crypto");
 
 exports.handler = async (event) => {
   const store = getStore({
@@ -7,8 +8,17 @@ exports.handler = async (event) => {
     token: process.env.NETLIFY_BLOBS_TOKEN,
   });
 
+  // ✅ CORS restrictif - accepter seulement le domaine principal
+  const allowedOrigins = [
+    "https://mainlinebounce.com",
+    "https://www.mainlinebounce.com",
+    process.env.SITE_URL
+  ].filter(Boolean);
+  const origin = event.headers.origin;
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
   const headers = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": corsOrigin,
     "Access-Control-Allow-Headers": "Content-Type, x-admin-key",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   };
@@ -27,7 +37,20 @@ exports.handler = async (event) => {
   // ✍️ POST → bloquer / débloquer une date (ADMIN uniquement)
   if (event.httpMethod === "POST") {
     const adminKey = event.headers["x-admin-key"];
-    if (adminKey !== process.env.ADMIN_KEY) {
+    const expectedKey = process.env.ADMIN_KEY;
+    
+    // ✅ Comparaison timing-safe pour éviter les timing attacks
+    let isValid = false;
+    try {
+      isValid = crypto.timingSafeEqual(
+        Buffer.from(adminKey || ""),
+        Buffer.from(expectedKey || "")
+      );
+    } catch (e) {
+      isValid = false;
+    }
+    
+    if (!isValid) {
       return { statusCode: 401, headers, body: "Unauthorized" };
     }
 

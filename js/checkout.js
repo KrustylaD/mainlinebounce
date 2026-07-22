@@ -63,9 +63,14 @@ function loadCart() {
     const itemTotal = price * quantity;
     total += itemTotal;
 
+    // ✅ Échapper le texte pour éviter le XSS
+    const escapedName = document.createElement('div').appendChild(
+      document.createTextNode(item.name)
+    ).parentNode.innerHTML;
+
     html += `
       <div class="summary-item">
-        <span class="name">${item.name} x${quantity}</span>
+        <span class="name">${escapedName} x${quantity}</span>
         <span>$${itemTotal.toFixed(2)}</span>
       </div>
     `;
@@ -112,8 +117,10 @@ function validateForm(formData) {
     safeModal("Please enter your name.", "Missing information", "📝");
     return false;
   }
-  if (!formData.email) {
-    safeModal("Please enter your email.", "Missing information", "📝");
+  // ✅ Validation du format email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!formData.email || !emailRegex.test(formData.email)) {
+    safeModal("Please enter a valid email address.", "Invalid email", "📧");
     return false;
   }
   if (!formData.address) {
@@ -122,6 +129,19 @@ function validateForm(formData) {
   }
   if (!formData.guests) {
     safeModal("Please enter number of guests.", "Missing information", "📝");
+    return false;
+  }
+  // ✅ Limiter les longueurs d'input
+  if (formData.name.length > 100) {
+    safeModal("Name must be less than 100 characters.", "Invalid input", "⚠️");
+    return false;
+  }
+  if (formData.address.length > 200) {
+    safeModal("Address must be less than 200 characters.", "Invalid input", "⚠️");
+    return false;
+  }
+  if (formData.comments.length > 500) {
+    safeModal("Comments must be less than 500 characters.", "Invalid input", "⚠️");
     return false;
   }
   return true;
@@ -156,6 +176,10 @@ function setupFormSubmit() {
     btn.textContent = "Processing...";
 
     try {
+      // ✅ Sauvegarder le consentement RGPD avant le paiement
+      const hasConsent = document.getElementById("dataConsent").checked;
+      localStorage.setItem('mlb_data_consent', hasConsent ? 'true' : 'false');
+      
       await handleStripePayment(formData);
     } catch (error) {
       console.error("❌ Error:", error);
@@ -212,6 +236,13 @@ async function handleStripePayment(formData) {
 function setUserData(formData) {
   if (typeof gtag === "undefined") {
     console.warn("⚠️ gtag non chargé, user_data non envoyé");
+    return;
+  }
+
+  // ✅ RGPD/CCPA - Ne pas envoyer les données sans consentement
+  const hasConsent = localStorage.getItem('mlb_data_consent') === 'true';
+  if (!hasConsent) {
+    console.log("⚠️ Pas de consentement RGPD - données personnelles non envoyées à Google");
     return;
   }
 

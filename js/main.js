@@ -149,35 +149,63 @@ function renderCartPage() {
 
   list.innerHTML = cart.map(function (item) {
     const lineTotal = (item.price * item.qty).toFixed(0);
+    // ✅ Échapper les textes pour éviter le XSS
+    const escapedName = document.createElement('div').appendChild(
+      document.createTextNode(item.name)
+    ).parentNode.innerHTML;
+    const escapedImage = document.createElement('div').appendChild(
+      document.createTextNode(item.image)
+    ).parentNode.innerHTML;
+    // Utiliser data-id pour éviter l'interpolation d'ID dans les événements
+    const dataId = document.createElement('div').appendChild(
+      document.createTextNode(item.id)
+    ).parentNode.innerHTML;
     return `
       <div class="cart-item product-card">
         <div class="product-image cart-item-img">
-          <img src="${item.image}" alt="${item.name}" />
+          <img src="${escapedImage}" alt="${escapedName}" />
         </div>
         <div class="cart-item-info">
-          <h3>${item.name}</h3>
+          <h3>${escapedName}</h3>
           <span class="price-tag">$${item.price}</span>
           <div class="cart-qty">
-            <button class="btn btn-outline btn-sm" onclick="changeQty('${item.id}', -1)">−</button>
+            <button class="btn btn-outline btn-sm" data-action="decrease" data-item-id="${dataId}">−</button>
             <input
               type="number"
               class="cart-qty-input"
               value="${item.qty}"
               min="1"
               max="${MAX_QTY}"
-              onchange="setQty('${item.id}', this.value)"
-              onclick="this.select()"
+              data-item-id="${dataId}"
             />
-            <button class="btn btn-outline btn-sm" onclick="changeQty('${item.id}', 1)">+</button>
+            <button class="btn btn-outline btn-sm" data-action="increase" data-item-id="${dataId}">+</button>
           </div>
         </div>
         <div class="cart-item-right">
           <span class="cart-line-total">$${lineTotal}</span>
-          <button class="cart-remove" onclick="removeFromCart('${item.id}')">Remove</button>
+          <button class="cart-remove" data-action="remove" data-item-id="${dataId}">Remove</button>
         </div>
       </div>
     `;
   }).join('');
+
+  // ✅ Ajouter les event listeners de façon sécurisée
+  document.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const itemId = this.dataset.itemId;
+      const action = this.dataset.action;
+      if (action === 'decrease') changeQty(itemId, -1);
+      if (action === 'increase') changeQty(itemId, 1);
+      if (action === 'remove') removeFromCart(itemId);
+    });
+  });
+
+  document.querySelectorAll('.cart-qty-input').forEach(input => {
+    input.addEventListener('change', function() {
+      setQty(this.dataset.itemId, this.value);
+    });
+  });
 
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
   const totalEl = document.querySelector('.cart-total-amount');

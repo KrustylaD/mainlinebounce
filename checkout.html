@@ -65,19 +65,19 @@
     <form id="checkoutForm">
       <div class="field">
         <label>Name <span class="req">*</span></label>
-        <input type="text" id="name" name="name" required>
+        <input type="text" id="name" name="name" maxlength="100" required>
       </div>
       <div class="field">
         <label>Email <span class="req">*</span></label>
-        <input type="email" id="email" name="email" required>
+        <input type="email" id="email" name="email" maxlength="100" required>
       </div>
       <div class="field">
         <label>Address <span class="req">*</span></label>
-        <input type="text" id="address" name="address" required>
+        <input type="text" id="address" name="address" maxlength="200" required>
       </div>
       <div class="field">
         <label>Phone number</label>
-        <input type="tel" id="phone" name="phone">
+        <input type="tel" id="phone" name="phone" maxlength="20">
       </div>
       <div class="field">
         <label>Which date is your event ?</label>
@@ -96,11 +96,11 @@
       </div>
       <div class="field">
         <label>How many guest ? <span class="req">*</span></label>
-        <input type="number" id="guests" name="guests" required>
+        <input type="number" id="guests" name="guests" min="1" max="1000" required>
       </div>
       <div class="field">
         <label>Comments</label>
-        <textarea id="comments" name="comments"></textarea>
+        <textarea id="comments" name="comments" maxlength="500"></textarea>
       </div>
 
       <!-- ✅ PAIEMENT PAR CARTE UNIQUEMENT -->
@@ -112,6 +112,16 @@
           <span class="pm-text">
             <span class="pm-title">Pay with Card</span>
             <span class="pm-desc">Secure online payment via Stripe</span>
+          </span>
+        </label>
+      </div>
+
+      <!-- ✅ CONSENTEMENT RGPD/CCPA -->
+      <div class="field" style="margin-top: 20px;">
+        <label style="display: flex; align-items: flex-start; gap: 10px; font-weight: normal;">
+          <input type="checkbox" id="dataConsent" name="dataConsent" style="width: auto; margin-top: 4px;">
+          <span style="font-size: 13px; line-height: 1.4; color: #666;">
+            I consent to sharing my data with Google Ads for enhanced conversion tracking and personalized marketing (optional)
           </span>
         </label>
       </div>
