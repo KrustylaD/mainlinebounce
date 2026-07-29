@@ -33,7 +33,6 @@ function safeModal(message, title, icon) {
 // ========================================
 let cart = JSON.parse(localStorage.getItem("mlb_cart")) || [];
 let pendingPaymentData = null;
-const PREPAY_PROMPT_KEY = "mlb_seen_prepay_prompt";
 
 document.addEventListener("DOMContentLoaded", function () {
   console.log("✅ Checkout page loaded");
@@ -163,7 +162,6 @@ function setupPrePayModal() {
   }
 
   continueBtn.addEventListener("click", async function () {
-    localStorage.setItem(PREPAY_PROMPT_KEY, "true");
     hidePrePayModal();
 
     if (pendingPaymentData) {
@@ -174,13 +172,8 @@ function setupPrePayModal() {
   });
 
   callNowBtn.addEventListener("click", function () {
-    localStorage.setItem(PREPAY_PROMPT_KEY, "true");
     hidePrePayModal();
   });
-}
-
-function shouldShowPrePayModal() {
-  return localStorage.getItem(PREPAY_PROMPT_KEY) !== "true";
 }
 
 function showPrePayModal(formData) {
@@ -241,12 +234,7 @@ function setupFormSubmit() {
       return;
     }
 
-    if (shouldShowPrePayModal()) {
-      showPrePayModal(formData);
-      return;
-    }
-
-    await startStripePayment(formData);
+    showPrePayModal(formData);
   });
 }
 
