@@ -1,6 +1,7 @@
 // Cette fonction reçoit la confirmation de paiement de Stripe
 // puis envoie les infos à Discord
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { sendBookingEmail } = require("./booking-email");
 
 const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
@@ -64,6 +65,28 @@ exports.handler = async (event) => {
       console.log("✅ Réservation payée envoyée à Discord!");
     } catch (err) {
       console.error("❌ Erreur Discord:", err);
+    }
+
+    try {
+      await sendBookingEmail({
+        title: "New Booking - PAID ONLINE",
+        customer: {
+          name: m.name || "",
+          email: m.email || session.customer_email || "",
+          address: m.address || "",
+          phone: m.phone || "",
+          date: m.date || "",
+          location: m.location || "",
+          guests: m.guests || "",
+          comments: m.comments || "",
+        },
+        itemsText: m.items || "No items",
+        total,
+        paidLabel: "✅ PAID",
+      });
+      console.log("✅ Réservation payée envoyée par email!");
+    } catch (emailError) {
+      console.error("❌ Erreur email:", emailError);
     }
   }
 

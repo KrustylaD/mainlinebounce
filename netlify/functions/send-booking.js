@@ -1,4 +1,5 @@
 // netlify/functions/send-booking.js
+const { sendBookingEmail } = require("./booking-email");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -50,6 +51,18 @@ exports.handler = async (event) => {
 
     if (!response.ok) {
       throw new Error(`Discord error: ${response.status}`);
+    }
+
+    try {
+      await sendBookingEmail({
+        title: "New Booking - PAY ON SITE",
+        customer,
+        cart,
+        total,
+        paidLabel: "(PAY ON SITE)",
+      });
+    } catch (emailError) {
+      console.error("❌ Email notification failed:", emailError);
     }
 
     return {
