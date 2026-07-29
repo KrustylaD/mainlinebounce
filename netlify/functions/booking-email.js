@@ -1,15 +1,19 @@
+const nodemailer = require("nodemailer");
+
 const DEFAULT_RECIPIENTS = [
   "garciajonathan916.jg@gmail.com",
   "carlineleblanc@gmail.com",
 ];
 
 function buildCartText(cart = []) {
-  return cart.map((item) => {
-    const price = parseFloat(item.price) || 0;
-    const quantity = parseInt(item.quantity || item.qty) || 1;
-    const itemTotal = (price * quantity).toFixed(2);
-    return `• ${item.name} x${quantity} = $${itemTotal}`;
-  }).join("\n");
+  return cart
+    .map((item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseInt(item.quantity || item.qty) || 1;
+      const itemTotal = (price * quantity).toFixed(2);
+      return `• ${item.name} x${quantity} = $${itemTotal}`;
+    })
+    .join("\n");
 }
 
 function buildEmailContent({ title, customer = {}, cart = [], itemsText = "", total = "0.00", paidLabel = "" }) {
@@ -53,43 +57,51 @@ function buildEmailContent({ title, customer = {}, cart = [], itemsText = "", to
   return { subject, text, html };
 }
 
-async function sendBookingEmail({ title, customer, cart, itemsText = "", total, paidLabel = "" }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn("⚠️ RESEND_API_KEY not configured, skipping email notification");
-    return { skipped: true };
-  }
-
-  const fromEmail = process.env.BOOKING_FROM_EMAIL || "Main Line Bounce <onboarding@resend.dev>";
-  const recipients = (process.env.BOOKING_NOTIFICATION_EMAILS || DEFAULT_RECIPIENTS.join(","))
+function getRecipients() {
+  return (process.env.BOOKING_NOTIFICATION_EMAILS || DEFAULT_RECIPIENTS.join(","))
     .split(",")
     .map((email) => email.trim())
     .filter(Boolean);
+}
+
+function createTransport() {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || "465", 10);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) {
+    throw new Error("SMTP_HOST, SMTP_USER, or SMTP_PASS is not configured");
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass,
+    },
+  });
+}
+
+async function sendBookingEmail({ title, customer, cart, itemsText = "", total, paidLabel = "" }) {
+  const transporter = createTransport();
+  const recipients = getRecipients();
+  const fromEmail = process.env.SMTP_FROM || `Main Line Bounce <${process.env.SMTP_USER}>`;
 
   const { subject, text, html } = buildEmailContent({ title, customer, cart, itemsText, total, paidLabel });
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: recipients,
-      subject,
-      text,
-      html,
-      replyTo: customer.email || undefined,
-    }),
+  const info = await transporter.sendMail({
+    from: fromEmail,
+    to: recipients,
+    subject,
+    text,
+    html,
+    replyTo: customer.email || undefined,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Email API error: ${response.status} ${errorText}`);
-  }
-
-  return response.json();
+  return { messageId: info.messageId, accepted: info.accepted, rejected: info.rejected };
 }
 
 module.exports = { sendBookingEmail };
