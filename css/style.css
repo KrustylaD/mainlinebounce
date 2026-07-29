@@ -1389,6 +1389,24 @@ ul   { list-style: none; }
   transform: translateY(-2px);
 }
 
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.modal-box .modal-btn-secondary {
+  background: #fff;
+  color: var(--color-dark);
+  border: 2px solid #e8e8ef;
+}
+
+.modal-box .modal-btn-secondary:hover {
+  background: #f7f7fb;
+  border-color: #d8d8e3;
+}
+
 @keyframes modalFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

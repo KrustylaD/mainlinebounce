@@ -32,6 +32,8 @@ function safeModal(message, title, icon) {
 // PANIER
 // ========================================
 let cart = JSON.parse(localStorage.getItem("mlb_cart")) || [];
+let pendingPaymentData = null;
+const PREPAY_PROMPT_KEY = "mlb_seen_prepay_prompt";
 
 document.addEventListener("DOMContentLoaded", function () {
   console.log("✅ Checkout page loaded");
@@ -39,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   loadCart();
   setupFormSubmit();
+  setupPrePayModal();
 });
 
 // ========================================
@@ -148,6 +151,73 @@ function validateForm(formData) {
 }
 
 // ========================================
+// POPUP AVANT PAIEMENT
+// ========================================
+function setupPrePayModal() {
+  const modal = document.getElementById("prePayModal");
+  const continueBtn = document.getElementById("continuePayBtn");
+  const callNowBtn = document.getElementById("callNowBtn");
+
+  if (!modal || !continueBtn || !callNowBtn) {
+    return;
+  }
+
+  continueBtn.addEventListener("click", async function () {
+    localStorage.setItem(PREPAY_PROMPT_KEY, "true");
+    hidePrePayModal();
+
+    if (pendingPaymentData) {
+      const formData = pendingPaymentData;
+      pendingPaymentData = null;
+      await startStripePayment(formData);
+    }
+  });
+
+  callNowBtn.addEventListener("click", function () {
+    localStorage.setItem(PREPAY_PROMPT_KEY, "true");
+    hidePrePayModal();
+  });
+}
+
+function shouldShowPrePayModal() {
+  return localStorage.getItem(PREPAY_PROMPT_KEY) !== "true";
+}
+
+function showPrePayModal(formData) {
+  pendingPaymentData = formData;
+  const modal = document.getElementById("prePayModal");
+  if (modal) {
+    modal.classList.add("show");
+  }
+}
+
+function hidePrePayModal() {
+  const modal = document.getElementById("prePayModal");
+  if (modal) {
+    modal.classList.remove("show");
+  }
+}
+
+async function startStripePayment(formData) {
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Processing...";
+
+  try {
+    // ✅ Sauvegarder le consentement RGPD avant le paiement
+    const hasConsent = document.getElementById("dataConsent").checked;
+    localStorage.setItem('mlb_data_consent', hasConsent ? 'true' : 'false');
+    
+    await handleStripePayment(formData);
+  } catch (error) {
+    console.error("❌ Error:", error);
+    safeModal("An error occurred: " + error.message, "Payment error", "❌");
+    btn.disabled = false;
+    btn.textContent = "Pay with Card";
+  }
+}
+
+// ========================================
 // SETUP DU FORMULAIRE
 // ========================================
 function setupFormSubmit() {
@@ -171,22 +241,12 @@ function setupFormSubmit() {
       return;
     }
 
-    const btn = document.getElementById("submitBtn");
-    btn.disabled = true;
-    btn.textContent = "Processing...";
-
-    try {
-      // ✅ Sauvegarder le consentement RGPD avant le paiement
-      const hasConsent = document.getElementById("dataConsent").checked;
-      localStorage.setItem('mlb_data_consent', hasConsent ? 'true' : 'false');
-      
-      await handleStripePayment(formData);
-    } catch (error) {
-      console.error("❌ Error:", error);
-      safeModal("An error occurred: " + error.message, "Payment error", "❌");
-      btn.disabled = false;
-      btn.textContent = "Pay with Card";
+    if (shouldShowPrePayModal()) {
+      showPrePayModal(formData);
+      return;
     }
+
+    await startStripePayment(formData);
   });
 }
 
